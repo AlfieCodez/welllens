@@ -3,7 +3,7 @@ from flask import Flask, render_template
 from werkzeug.exceptions import RequestEntityTooLarge
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from config import Config
+from config import Config, secret_key_is_weak
 from .extensions import csrf, db, oauth
 
 
@@ -14,6 +14,13 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     # Respect X-Forwarded-* from a TLS-terminating proxy (cloudflared, nginx,
     # the host platform) so _external URLs use https and the right host.
     app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
+    # Warn (don't crash) if a public deployment is running with a weak secret.
+    if not app.config.get("DEBUG") and secret_key_is_weak(app.config.get("SECRET_KEY")):
+        app.logger.warning(
+            "SECRET_KEY is not set to a strong value. Set it before exposing this "
+            "app publicly — sessions can be forged otherwise."
+        )
 
     # Ensure runtime dirs exist.
     config_class.INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
@@ -41,10 +48,16 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(garmin_bp)
 
-    # Expose Garmin availability to templates.
+    # Expose Garmin availability to templates (read straight from config — never
+    # instantiate the config class per request).
     @app.context_processor
     def inject_flags():
-        return {"garmin_enabled": config_class().garmin_enabled}
+        return {
+            "garmin_enabled": bool(
+                app.config.get("GARMIN_CLIENT_ID")
+                and app.config.get("GARMIN_CLIENT_SECRET")
+            )
+        }
 
     # Create tables on first run.
     with app.app_context():

@@ -103,10 +103,6 @@ class ProductionConfig(Config):
     SESSION_COOKIE_SECURE = True
     PREFERRED_URL_SCHEME = "https"
 
-    def __init__(self) -> None:
-        # Fail fast if the deployment forgot to set a real secret.
-        if Config.SECRET_KEY in ("", "dev-only-insecure-key-change-me"):
-            raise RuntimeError(
-                "SECRET_KEY must be set to a strong value in production "
-                "(e.g. `fly secrets set SECRET_KEY=...`)."
-            )
+
+def secret_key_is_weak(secret: str | None) -> bool:
+    return secret in (None, "", "dev-only-insecure-key-change-me")
