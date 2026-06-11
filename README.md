@@ -212,9 +212,28 @@ welllens/
 
 ---
 
+## Subscriptions (Phase 4) & chatbot (Phase 5)
+
+**Subscriptions (Stripe):** Free users get `FREE_UPLOAD_LIMIT` uploads (default 5); **Pro
+(£4.99/month)** is unlimited. Stripe Checkout handles payment (no card data touches
+WellLens); a signed webhook (`/webhooks/stripe`) keeps each user's status in sync; the
+billing portal handles cancel/manage. Admins can **grant free Pro** ("comp") to anyone from
+the admin dashboard. Set `STRIPE_SECRET_KEY`, `STRIPE_PRICE_ID`, `STRIPE_WEBHOOK_SECRET`
+(see `.env.example`); leave them blank to keep billing disabled.
+
+**Persistence:** subscriptions need a database that survives redeploys — set `DATABASE_URL`
+to a Postgres URL (e.g. a free Neon database). Defaults to SQLite for local dev.
+
+**AI chatbot:** a floating support widget (on every page, including the login page) answers
+questions about WellLens from a fixed knowledge base via Groq. When it isn't confident, it
+**escalates** — saving the question to an admin **support inbox** (`/admin/support`). Works
+with no Groq key too (it just escalates everything).
+
 ## Roadmap
 
 - ✅ **Phase 1 — core app** (auth, upload/parsing, insights, dashboards).
 - ✅ **Phase 2 — Garmin auto-sync** (OAuth 2.0 PKCE + webhook → pull → same dedupe pipeline).
 - ✅ **Phase 3 — PWA** (installable, offline app shell).
-- **Next:** deploy to a stable HTTPS host (`DEPLOYMENT.md`), then app-store wrapping.
+- ✅ **Phase 4 — Subscriptions** (Stripe £4.99/mo Pro, upload limits, admin comps).
+- ✅ **Phase 5 — AI chatbot** (support widget + escalation inbox).
+- **Live:** deployed on Render (`DEPLOYMENT.md`). Next: persistent Postgres + app-store wrapping.

@@ -1,9 +1,9 @@
 """User and admin dashboards."""
-from flask import Blueprint, render_template
+from flask import Blueprint, flash, redirect, render_template, url_for
 
 from ..auth.helpers import admin_required, current_user, login_required
 from ..extensions import db
-from ..models import Activity, GarminToken, User
+from ..models import Activity, GarminToken, SupportTicket, User
 from ..insights.compute import compute_insights
 from ..insights.narrate import narrate
 
@@ -67,6 +67,9 @@ def admin():
     activity_count = db.session.query(Activity).count()
     admin_count = db.session.query(User).filter_by(is_admin=True).count()
 
+    pro_count = sum(1 for u in User.query.all() if u.is_pro)
+    open_tickets = SupportTicket.query.filter_by(resolved=False).count()
+
     users = User.query.order_by(User.created_at.desc()).all()
     rows = [
         {
@@ -82,4 +85,20 @@ def admin():
         user_count=user_count,
         activity_count=activity_count,
         admin_count=admin_count,
+        pro_count=pro_count,
+        open_tickets=open_tickets,
     )
+
+
+@dashboard_bp.route("/admin/users/<int:user_id>/comp", methods=["POST"])
+@admin_required
+def toggle_comp(user_id):
+    target = db.session.get(User, user_id)
+    if target is None:
+        flash("User not found.", "error")
+        return redirect(url_for("dashboard.admin"))
+    target.comped = not target.comped
+    db.session.commit()
+    state = "granted free Pro to" if target.comped else "removed free Pro from"
+    flash(f"{state} {target.email}.", "success")
+    return redirect(url_for("dashboard.admin"))

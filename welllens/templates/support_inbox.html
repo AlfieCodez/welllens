@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Support inbox · WellLens{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Support inbox</h1>
+  <p class="sub">Questions the chatbot escalated to the team. {{ open_count }} open.</p>
+</div>
+
+{% if not tickets %}
+  <div class="empty"><h3>Nothing here yet</h3><p>Escalated questions will appear here.</p></div>
+{% else %}
+<div class="card pad-lg">
+  <table class="table">
+    <thead>
+      <tr><th>When</th><th>From</th><th>Question</th><th>Status</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for t in tickets %}
+      <tr>
+        <td>{{ t.created_at.strftime('%d %b %H:%M') }}</td>
+        <td>{{ t.email or 'Visitor' }}</td>
+        <td class="strong" style="max-width:420px">{{ t.question }}</td>
+        <td>
+          {% if t.resolved %}<span class="flag low">Resolved</span>
+          {% else %}<span class="flag watch">Open</span>{% endif %}
+        </td>
+        <td>
+          <form method="POST" action="{{ url_for('chat.resolve', ticket_id=t.id) }}" style="margin:0">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn ghost" style="padding:8px 14px">
+              {{ 'Reopen' if t.resolved else 'Resolve' }}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -30,16 +30,32 @@ class Config:
     UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", BASE_DIR / "uploads"))
 
     # ---- Database ----
-    # Default: SQLite file under instance/.
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
+    # Default: SQLite file under instance/. Set DATABASE_URL to a Postgres URL
+    # (e.g. Neon) in production so data survives redeploys.
+    _raw_db_url = os.environ.get(
         "DATABASE_URL", f"sqlite:///{(INSTANCE_DIR / 'welllens.db').as_posix()}"
     )
+    # Some providers hand out the legacy "postgres://" scheme; SQLAlchemy needs
+    # "postgresql://".
+    if _raw_db_url.startswith("postgres://"):
+        _raw_db_url = _raw_db_url.replace("postgres://", "postgresql://", 1)
+    SQLALCHEMY_DATABASE_URI = _raw_db_url
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Recycle connections so Postgres (Neon) doesn't drop idle ones under us.
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True, "pool_recycle": 280}
 
     # ---- Uploads ----
     MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "25"))
     MAX_CONTENT_LENGTH = MAX_UPLOAD_MB * 1024 * 1024
     ALLOWED_EXTENSIONS = {".fit", ".gpx", ".tcx"}
+    # Free-tier upload cap (manual uploads). Pro/comped/admin are unlimited.
+    FREE_UPLOAD_LIMIT = int(os.environ.get("FREE_UPLOAD_LIMIT", "5"))
+
+    # ---- Stripe (subscriptions) ----
+    STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "").strip()
+    STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "").strip()
+    STRIPE_PRICE_ID = os.environ.get("STRIPE_PRICE_ID", "").strip()  # the £4.99/mo price
+    STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "").strip()
 
     # ---- Groq (AI narration) ----
     GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "").strip()
@@ -93,6 +109,10 @@ class Config:
     @property
     def garmin_enabled(self) -> bool:
         return bool(self.GARMIN_CLIENT_ID and self.GARMIN_CLIENT_SECRET)
+
+    @property
+    def stripe_enabled(self) -> bool:
+        return bool(self.STRIPE_SECRET_KEY and self.STRIPE_PRICE_ID)
 
 
 class ProductionConfig(Config):

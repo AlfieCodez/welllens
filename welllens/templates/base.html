@@ -26,6 +26,13 @@
     <nav class="nav">
       <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
       <a href="{{ url_for('activities.upload') }}">Upload</a>
+      {% if stripe_enabled %}
+        {% if cu and cu.is_pro %}
+          <span class="who" style="color:var(--green);font-weight:600">Pro</span>
+        {% else %}
+          <a href="{{ url_for('billing.index') }}" style="color:var(--green);font-weight:600">Upgrade</a>
+        {% endif %}
+      {% endif %}
       {% if session.get('is_admin') %}<a href="{{ url_for('dashboard.admin') }}">Admin</a>{% endif %}
       {% if user %}<span class="who">{{ user.name }}</span>{% endif %}
       <a href="{{ url_for('auth.logout') }}">Sign out</a>
@@ -47,6 +54,8 @@
   <main class="wrap">
     {% block content %}{% endblock %}
   </main>
+
+  {% include 'partials/chat_widget.html' %}
 
   {% block scripts %}{% endblock %}
 </body>

@@ -24,9 +24,34 @@ class User(db.Model):
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=_utcnow)
 
+    # ---- Subscription / billing ----
+    plan = db.Column(db.String(20), nullable=False, default="free")  # 'free' | 'pro'
+    # Admin-granted free Pro access (a "comp").
+    comped = db.Column(db.Boolean, nullable=False, default=False)
+    stripe_customer_id = db.Column(db.String(120), nullable=True, index=True)
+    stripe_subscription_id = db.Column(db.String(120), nullable=True, index=True)
+    # Stripe subscription status: active, trialing, past_due, canceled, etc.
+    subscription_status = db.Column(db.String(40), nullable=True)
+    subscription_current_period_end = db.Column(db.DateTime, nullable=True)
+
     activities = db.relationship(
         "Activity", backref="user", cascade="all, delete-orphan", lazy="dynamic"
     )
+
+    _ACTIVE_SUB_STATUSES = ("active", "trialing")
+
+    @property
+    def has_active_subscription(self) -> bool:
+        return (self.subscription_status or "") in self._ACTIVE_SUB_STATUSES
+
+    @property
+    def is_pro(self) -> bool:
+        """Effective Pro access: paid subscription, an admin comp, or admin."""
+        return bool(self.has_active_subscription or self.comped or self.is_admin)
+
+    def upload_count(self) -> int:
+        """Number of manually-uploaded activities (Garmin sync doesn't count)."""
+        return self.activities.filter_by(source="upload").count()
 
     def set_password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
@@ -121,3 +146,24 @@ class GarminToken(db.Model):
 
     def __repr__(self) -> str:
         return f"<GarminToken user={self.user_id} garmin={self.garmin_user_id}>"
+
+
+class SupportTicket(db.Model):
+    """A question the chatbot couldn't answer, escalated to the team's inbox."""
+
+    __tablename__ = "support_tickets"
+
+    id = db.Column(db.Integer, primary_key=True)
+    # Nullable: anonymous visitors (e.g. on the login page) can ask too.
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=True, index=True)
+    email = db.Column(db.String(255), nullable=True)
+    question = db.Column(db.Text, nullable=False)
+    # The bot's best-effort reply (or note) at escalation time.
+    bot_reply = db.Column(db.Text, nullable=True)
+    resolved = db.Column(db.Boolean, nullable=False, default=False, index=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=_utcnow)
+
+    user = db.relationship("User")
+
+    def __repr__(self) -> str:
+        return f"<SupportTicket {self.id} resolved={self.resolved}>"

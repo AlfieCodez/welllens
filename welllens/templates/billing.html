@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Billing · WellLens{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Your plan</h1>
+  <p class="sub">Upgrade for unlimited uploads and keep your insights flowing.</p>
+</div>
+
+<div class="grid cols-2">
+  <!-- Free -->
+  <div class="card pad-lg">
+    <h3>Free</h3>
+    <p style="margin:8px 0 16px;color:var(--label)">Up to {{ free_limit }} uploads.</p>
+    <div class="metric"><span class="value">£0</span></div>
+    <p style="margin-top:14px;font-size:14px;color:var(--ink-soft)">
+      You've used <strong>{{ uploads_used }}</strong> of {{ free_limit }} uploads.
+    </p>
+    {% if not cu.is_pro %}
+      <p style="margin-top:10px"><span class="flag balanced">Current plan</span></p>
+    {% endif %}
+  </div>
+
+  <!-- Pro -->
+  <div class="card pad-lg" style="border-color:var(--green)">
+    <h3>Pro</h3>
+    <p style="margin:8px 0 16px;color:var(--label)">Unlimited uploads + every insight.</p>
+    <div class="metric"><span class="value">£4.99</span><span class="unit">/ month</span></div>
+
+    {% if cu.is_pro %}
+      <p style="margin-top:14px">
+        <span class="flag balanced">
+          {% if cu.comped %}Pro (granted){% elif cu.is_admin %}Pro (admin){% else %}Active{% endif %}
+        </span>
+      </p>
+      {% if cu.subscription_current_period_end %}
+        <p style="margin-top:8px;font-size:13px;color:var(--label)">
+          Renews {{ cu.subscription_current_period_end.strftime('%d %b %Y') }}.
+        </p>
+      {% endif %}
+      {% if cu.stripe_customer_id and not cu.comped %}
+        <form method="POST" action="{{ url_for('billing.portal') }}" style="margin-top:16px">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn ghost">Manage subscription</button>
+        </form>
+      {% endif %}
+    {% else %}
+      {% if stripe_enabled %}
+        <form method="POST" action="{{ url_for('billing.checkout') }}" style="margin-top:16px">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn">Upgrade to Pro — £4.99/mo</button>
+        </form>
+        <p style="margin-top:10px;font-size:12px;color:var(--label)">Secure checkout via Stripe. Cancel anytime.</p>
+      {% else %}
+        <p style="margin-top:16px;color:var(--label);font-size:14px">Subscriptions aren't enabled on this server yet.</p>
+      {% endif %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

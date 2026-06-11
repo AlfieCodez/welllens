@@ -7,6 +7,15 @@
   <p class="sub">Drop in a .fit, .gpx or .tcx file exported from any device or app.</p>
 </div>
 
+{% if free_info %}
+<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px">
+  <span style="color:var(--ink-soft);font-size:14px">
+    Free plan: <strong>{{ free_info.used }}</strong> of {{ free_info.limit }} uploads used.
+  </span>
+  <a class="btn" href="{{ url_for('billing.index') }}" style="padding:10px 18px">Upgrade for unlimited</a>
+</div>
+{% endif %}
+
 <div class="card pad-lg" style="max-width:640px">
   <form method="POST" action="{{ url_for('activities.upload_post') }}" enctype="multipart/form-data" id="uploadForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">

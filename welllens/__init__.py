@@ -41,22 +41,32 @@ def create_app(config_class: type[Config] = Config) -> Flask:
     from .activities.routes import activities_bp
     from .dashboard.routes import dashboard_bp
     from .garmin.routes import garmin_bp
+    from .billing.routes import billing_bp
+    from .chat.routes import chat_bp
 
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(activities_bp)
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(garmin_bp)
+    app.register_blueprint(billing_bp)
+    app.register_blueprint(chat_bp)
 
-    # Expose Garmin availability to templates (read straight from config — never
-    # instantiate the config class per request).
+    # Expose feature flags + the current user to templates (read straight from
+    # config — never instantiate the config class per request).
     @app.context_processor
     def inject_flags():
+        from .auth.helpers import current_user
+
         return {
             "garmin_enabled": bool(
                 app.config.get("GARMIN_CLIENT_ID")
                 and app.config.get("GARMIN_CLIENT_SECRET")
-            )
+            ),
+            "stripe_enabled": bool(
+                app.config.get("STRIPE_SECRET_KEY") and app.config.get("STRIPE_PRICE_ID")
+            ),
+            "cu": current_user(),
         }
 
     # Create tables on first run.
