@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Admin · WellLens{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Admin</h1>
+  <p class="sub">People and activity across this WellLens instance.</p>
+</div>
+
+<div class="grid cols-3" style="margin-bottom:18px">
+  <div class="card metric">
+    <span class="cap">Users</span>
+    <span class="value">{{ user_count }}</span>
+  </div>
+  <div class="card metric">
+    <span class="cap">Activities</span>
+    <span class="value">{{ activity_count }}</span>
+  </div>
+  <div class="card metric">
+    <span class="cap">Admins</span>
+    <span class="value">{{ admin_count }}</span>
+  </div>
+</div>
+
+<div class="card pad-lg">
+  <h3 style="margin-bottom:16px">Users</h3>
+  <table class="table">
+    <thead>
+      <tr><th>Name</th><th>Email</th><th>Username</th><th>Activities</th><th>Admin</th><th>Joined</th></tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td class="strong">{{ row.user.name }}</td>
+        <td>{{ row.user.email }}</td>
+        <td>{{ row.user.username or '—' }}</td>
+        <td>{{ row.activity_count }}</td>
+        <td>{{ 'Yes' if row.user.is_admin else '—' }}</td>
+        <td>{{ row.user.created_at.strftime('%d %b %Y') }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

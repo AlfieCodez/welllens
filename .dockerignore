@@ -1,0 +1,17 @@
+.venv/
+venv/
+instance/
+uploads/
+tools/
+.git/
+.gitignore
+__pycache__/
+*.pyc
+*.db
+*.sqlite*
+.env
+tunnel*.log
+*.pdf
+.pytest_cache/
+.vscode/
+.idea/

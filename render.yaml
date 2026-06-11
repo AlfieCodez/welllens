@@ -1,0 +1,43 @@
+# Render Blueprint — deploys WellLens as a free Docker web service.
+# In the Render dashboard: New + → Blueprint → connect this repo.
+# Docs: https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: welllens
+    runtime: docker
+    plan: free            # no credit card; sleeps when idle; ephemeral disk
+    region: frankfurt     # closest free region to the UK
+    healthCheckPath: /healthz
+    envVars:
+      - key: FLASK_DEBUG
+        value: "0"
+      - key: SESSION_COOKIE_SECURE
+        value: "1"
+      - key: PREFERRED_URL_SCHEME
+        value: https
+      # Render generates a strong secret and keeps it stable across deploys.
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      # Admin via Google only in production (keep the password bypass off on a
+      # public URL). Set to "1" temporarily ONLY with a strong admin password.
+      - key: ALLOW_PASSWORD_ADMIN
+        value: "0"
+      # --- Fill these in the Render dashboard (sync:false = not stored in git) ---
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ADMIN_EMAILS
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GARMIN_CLIENT_ID
+        sync: false
+      - key: GARMIN_CLIENT_SECRET
+        sync: false
+      - key: GARMIN_REDIRECT_URI
+        sync: false
+      - key: GARMIN_WEBHOOK_TOKEN
+        sync: false

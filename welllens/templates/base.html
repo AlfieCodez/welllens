@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}WellLens{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/welllens.css') }}">
+  {% include 'partials/pwa_head.html' %}
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('dashboard.index') }}">
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 4C20 4 8 4 5.5 11.5C3.6 17.2 7 20 7 20C7 20 8 13 13 9.5C9.8 13 8.5 16.5 8.5 19.5"
+                stroke="#F6F3EC" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="name">WellLens</span>
+    </a>
+    <nav class="nav">
+      <a href="{{ url_for('dashboard.index') }}">Dashboard</a>
+      <a href="{{ url_for('activities.upload') }}">Upload</a>
+      {% if session.get('is_admin') %}<a href="{{ url_for('dashboard.admin') }}">Admin</a>{% endif %}
+      {% if user %}<span class="who">{{ user.name }}</span>{% endif %}
+      <a href="{{ url_for('auth.logout') }}">Sign out</a>
+    </nav>
+  </header>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flashes">
+        {% for category, message in messages %}
+          {% if category not in ('login_error', 'register_error') %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main class="wrap">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

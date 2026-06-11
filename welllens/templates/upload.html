@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Upload · WellLens{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Upload activity</h1>
+  <p class="sub">Drop in a .fit, .gpx or .tcx file exported from any device or app.</p>
+</div>
+
+<div class="card pad-lg" style="max-width:640px">
+  <form method="POST" action="{{ url_for('activities.upload_post') }}" enctype="multipart/form-data" id="uploadForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="drop" id="drop" role="button" tabindex="0" style="cursor:pointer">
+      <input type="file" name="activity" id="fileInput" accept=".fit,.gpx,.tcx" multiple
+             style="position:absolute;width:1px;height:1px;opacity:0;overflow:hidden">
+      <div>
+        <strong>Choose files</strong> or drag them here
+        <div class="hint">.fit · .gpx · .tcx — up to {{ config.MAX_UPLOAD_MB }} MB each</div>
+      </div>
+    </div>
+    <div class="filelist" id="fileList"></div>
+    <div style="margin-top:20px">
+      <button type="submit" class="btn">Upload &amp; analyse</button>
+      <a class="btn ghost" href="{{ url_for('dashboard.index') }}" style="margin-left:8px">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    var drop = document.getElementById("drop");
+    var input = document.getElementById("fileInput");
+    var list = document.getElementById("fileList");
+
+    function render() {
+      if (!input.files.length) { list.textContent = ""; return; }
+      var names = Array.from(input.files).map(function (f) { return f.name; });
+      list.textContent = "Selected: " + names.join(", ");
+    }
+    input.addEventListener("change", render);
+
+    // Open the native file picker when the dropzone is clicked or activated.
+    drop.addEventListener("click", function (e) {
+      if (e.target !== input) input.click();
+    });
+    drop.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.click(); }
+    });
+
+    ["dragenter", "dragover"].forEach(function (e) {
+      drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.add("drag"); });
+    });
+    ["dragleave", "drop"].forEach(function (e) {
+      drop.addEventListener(e, function (ev) { ev.preventDefault(); drop.classList.remove("drag"); });
+    });
+    drop.addEventListener("drop", function (ev) {
+      if (ev.dataTransfer && ev.dataTransfer.files.length) { input.files = ev.dataTransfer.files; render(); }
+    });
+  })();
+</script>
+{% endblock %}

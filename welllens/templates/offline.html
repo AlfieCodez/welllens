@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Offline · WellLens</title>
+  <meta name="theme-color" content="#41613A">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/welllens.css') }}">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 32px; }
+    .panel { max-width: 380px; text-align: center; }
+    .panel .mark {
+      width: 56px; height: 56px; border-radius: 16px; background: var(--green);
+      display: grid; place-items: center; margin: 0 auto 22px;
+      box-shadow: 0 6px 16px rgba(65,97,58,.22);
+    }
+    .panel .mark svg { width: 28px; height: 28px; }
+    .panel h1 { margin-bottom: 12px; }
+    .panel p { color: var(--label); font-size: 15px; line-height: 1.55; margin-bottom: 26px; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M20 4C20 4 8 4 5.5 11.5C3.6 17.2 7 20 7 20C7 20 8 13 13 9.5C9.8 13 8.5 16.5 8.5 19.5"
+              stroke="#F6F3EC" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <h1>You're offline</h1>
+    <p>WellLens needs a connection to load your latest insights. Your installed app
+       shell is still here — reconnect and try again.</p>
+    <a class="btn" href="{{ url_for('main.index') }}">Try again</a>
+  </div>
+</body>
+</html>

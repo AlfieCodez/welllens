@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ code }} · WellLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/welllens.css') }}">
+  <style>
+    body { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 32px; }
+    .panel { max-width: 420px; text-align: center; }
+    .panel .code { font-family: "Fraunces", serif; font-size: 56px; color: var(--green); }
+    .panel p { color: var(--ink-soft); font-size: 16px; margin: 8px 0 28px; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="code">{{ code }}</div>
+    <p>{{ message }}</p>
+    <a class="btn" href="{{ url_for('main.index') }}">Back to WellLens</a>
+  </div>
+</body>
+</html>

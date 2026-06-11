@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Virtual env
+.venv/
+venv/
+
+# Secrets
+.env
+
+# Instance / database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploaded raw activity files
+uploads/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local tooling + tunnel logs
+tools/
+tunnel.log

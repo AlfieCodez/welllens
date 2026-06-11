@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Dashboard · WellLens{% endblock %}
+
+{% block content %}
+<div class="page-head">
+  <h1>Hello, {{ user.name.split(' ')[0] }}</h1>
+  <p class="sub">Here's what your activity is telling us.</p>
+</div>
+
+{% if garmin_enabled %}
+<div class="card" style="display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:18px">
+  <div>
+    <span class="cap" style="display:block;margin-bottom:4px">Garmin Connect</span>
+    {% if garmin_linked %}
+      <span style="color:var(--green);font-weight:500">Connected — new activities sync automatically.</span>
+    {% else %}
+      <span style="color:var(--ink-soft)">Link your Garmin account to sync activities automatically.</span>
+    {% endif %}
+  </div>
+  {% if garmin_linked %}
+    <form method="POST" action="{{ url_for('garmin.disconnect') }}" style="margin:0">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button type="submit" class="btn ghost">Disconnect</button>
+    </form>
+  {% else %}
+    <a class="btn" href="{{ url_for('garmin.connect') }}">Connect Garmin</a>
+  {% endif %}
+</div>
+{% endif %}
+
+{% if insights.total_activities == 0 %}
+  <div class="empty">
+    <h3>No activities yet</h3>
+    <p>Upload your first .fit, .gpx or .tcx file and WellLens will start finding patterns.</p>
+    <p style="margin-top:18px"><a class="btn" href="{{ url_for('activities.upload') }}">Upload a file</a></p>
+  </div>
+{% else %}
+
+  <!-- AI / template insight -->
+  <div class="insight" style="margin-bottom:18px">
+    <span class="cap">Your insight</span>
+    {{ insight_text }}
+  </div>
+
+  <!-- key metrics -->
+  <div class="grid cols-3" style="margin-bottom:18px">
+    <div class="card metric">
+      <span class="cap">This week</span>
+      <span class="value">{{ '%.1f' % insights.this_week_km }}<span class="unit">km</span></span>
+      {% if insights.wow_distance_pct is not none %}
+        <div style="margin-top:8px;font-size:13px;color:var(--label)">
+          {{ '+' if insights.wow_distance_pct >= 0 else '' }}{{ '%.0f' % insights.wow_distance_pct }}% vs last week
+        </div>
+      {% endif %}
+    </div>
+    <div class="card metric">
+      <span class="cap">Training load (ACWR)</span>
+      <span class="value">{{ '%.2f' % insights.acwr if insights.acwr is not none else '—' }}</span>
+      <div style="margin-top:10px">
+        <span class="flag {{ insights.acwr_flag }}">{{ insights.acwr_flag | capitalize }}</span>
+      </div>
+    </div>
+    <div class="card metric">
+      <span class="cap">Total activities</span>
+      <span class="value">{{ insights.total_activities }}</span>
+      <div style="margin-top:8px;font-size:13px;color:var(--label)">
+        Pace trend: {{ insights.pace_trend.replace('-', ' ') }}
+      </div>
+    </div>
+  </div>
+
+  <!-- charts -->
+  <div class="grid cols-2" style="margin-bottom:18px">
+    <div class="card pad-lg">
+      <h3 style="margin-bottom:14px">Weekly distance</h3>
+      <canvas id="weeklyChart" height="200"></canvas>
+    </div>
+    <div class="card pad-lg">
+      <h3 style="margin-bottom:14px">Pace trend (min/km)</h3>
+      {% if chart.pace_values %}
+        <canvas id="paceChart" height="200"></canvas>
+      {% else %}
+        <p style="color:var(--label);font-size:14px">Add activities with pace data to see this trend.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- recent activities -->
+  <div class="card pad-lg">
+    <h3 style="margin-bottom:16px">Recent activities</h3>
+    <table class="table">
+      <thead>
+        <tr><th>Date</th><th>Type</th><th>Distance</th><th>Duration</th><th>Pace</th><th>Avg HR</th></tr>
+      </thead>
+      <tbody>
+        {% for a in activities %}
+        <tr>
+          <td class="strong">{{ a.start_time.strftime('%d %b %Y') }}</td>
+          <td>{{ (a.type or '—') | capitalize }}</td>
+          <td>{{ a.distance_km ~ ' km' if a.distance_km else '—' }}</td>
+          <td>{{ a.duration_hms }}</td>
+          <td>{{ a.pace_label or '—' }}</td>
+          <td>{{ a.avg_hr or '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{% if insights.total_activities > 0 %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script id="chart-data" type="application/json">{{ chart | tojson }}</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endif %}
+{% endblock %}
