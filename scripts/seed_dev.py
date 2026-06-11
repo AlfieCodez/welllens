@@ -25,7 +25,7 @@ DEMO_EMAIL = "demo@welllens.local"
 DEMO_USERNAME = "demo"
 DEMO_PASSWORD = "welllens123"
 
-ADMIN_EMAIL = "candofmaccess@gmail.com"  # your email — matches Google later
+ADMIN_EMAIL = "alfiehen2012@outlook.com"  # admin allowlist email
 ADMIN_USERNAME = "admin"
 ADMIN_PASSWORD = "welllens123"
 
